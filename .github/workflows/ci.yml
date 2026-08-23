@@ -1,0 +1,43 @@
+name: AutoHeal Test
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Build
+        run: dotnet build
+
+      - name: Simulate Failure
+        run: |
+          echo "🔥 Intentional failure for AutoHeal testing"
+          exit 1
+
+      - name: Notify AutoHeal
+        if: failure()
+        run: |
+          curl -X POST \
+            https://cicd-backend-n7hu.onrender.com/api/healing/failure \
+            -H "Content-Type: application/json" \
+            -H "X-Healer-Secret: ${{ secrets.HEALER_CALLBACK_SECRET }}" \
+            -d '{
+              "repository": "${{ github.event.repository.name }}",
+              "owner": "${{ github.repository_owner }}",
+              "branch": "${{ github.ref_name }}",
+              "commitSha": "${{ github.sha }}",
+              "workflowRunId": ${{ github.run_id }}
+            }'
