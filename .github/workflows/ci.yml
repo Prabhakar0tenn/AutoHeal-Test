@@ -24,7 +24,7 @@ jobs:
 
       - name: Simulate Failure
         run: |
-          echo "🔥 Intentional failure for AutoHeal testing"
+          echo " Intentional failure for AutoHeal testing"
           exit 1
 
       - name: Notify AutoHeal
