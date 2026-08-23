@@ -28,9 +28,13 @@ jobs:
           exit 1
 
       - name: Notify AutoHeal
-        if: failure()
+        if: ${{ failure() }}
         run: |
-          curl -X POST \
+          echo "🚨 Sending failure notification to AutoHeal..."
+
+          curl -v --fail-with-body \
+            --max-time 30 \
+            -X POST \
             https://cicd-backend-n7hu.onrender.com/api/healing/failure \
             -H "Content-Type: application/json" \
             -H "X-Healer-Secret: ${{ secrets.HEALER_CALLBACK_SECRET }}" \
@@ -38,6 +42,9 @@ jobs:
               "repository": "${{ github.event.repository.name }}",
               "owner": "${{ github.repository_owner }}",
               "branch": "${{ github.ref_name }}",
+              "commitSha": "${{ github.sha }}",
+              "workflowRunId": ${{ github.run_id }}
+            }'_name }}",
               "commitSha": "${{ github.sha }}",
               "workflowRunId": ${{ github.run_id }}
             }'
